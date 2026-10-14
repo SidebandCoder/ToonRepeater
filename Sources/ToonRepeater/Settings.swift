@@ -154,7 +154,23 @@ enum Settings {
         set { defaults.set(newValue, forKey: "autoUpdate"); notify() }
     }
 
-    /// How clone battle mode delivers clicks to the other game windows.
+    enum ArrangeSide: String, CaseIterable {
+        case right, left
+    }
+
+    /// Share of the screen width (0.3…1) that Arrange Game Windows fills with the 2×2 grid.
+    static var arrangeWidthFraction: CGFloat {
+        get { CGFloat((defaults.object(forKey: "arrangeWidthFraction") as? Double) ?? 1) }
+        set { defaults.set(Double(min(1, max(0.3, newValue))), forKey: "arrangeWidthFraction") }
+    }
+
+    /// Which side of the screen the grid sits on when it doesn't fill the whole width.
+    static var arrangeSide: ArrangeSide {
+        get { defaults.string(forKey: "arrangeSide").flatMap(ArrangeSide.init) ?? .right }
+        set { defaults.set(newValue.rawValue, forKey: "arrangeSide") }
+    }
+
+    /// How Click Repeater delivers clicks to the other game windows.
     static var repeaterMethod: ClickRepeater.Method {
         get { defaults.string(forKey: "repeaterMethod").flatMap(ClickRepeater.Method.init) ?? .foreground }
         set { defaults.set(newValue.rawValue, forKey: "repeaterMethod"); notify() }

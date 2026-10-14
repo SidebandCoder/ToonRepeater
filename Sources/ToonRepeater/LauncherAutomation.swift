@@ -256,17 +256,29 @@ enum LauncherAutomation {
     /// Arranges game windows in a 2×2 grid on the screen containing the controller.
     static func arrange(pids: [pid_t?], on screen: NSScreen) {
         guard let primary = NSScreen.screens.first else { return }
-        let visible = screen.visibleFrame
-        let size = CGSize(width: visible.width / 2, height: visible.height / 2)
+        let frames = gridFrames(visible: screen.visibleFrame, primaryHeight: primary.frame.maxY,
+                                widthFraction: Settings.arrangeWidthFraction, side: Settings.arrangeSide)
         for (slot, pid) in pids.enumerated() {
             guard let pid = pid, let window = AXElement.application(pid: pid).windows.first else { continue }
-            // AX uses top-left origin coordinates measured from the primary screen's top edge.
-            let column = CGFloat(slot % 2), row = CGFloat(slot / 2)
-            var origin = CGPoint(x: visible.minX + column * size.width,
-                                 y: primary.frame.maxY - visible.maxY + row * size.height)
-            var windowSize = size
+            var origin = frames[slot].origin
+            var size = frames[slot].size
             if let position = AXValueCreate(.cgPoint, &origin) { window.set(kAXPositionAttribute, position) }
-            if let sizeValue = AXValueCreate(.cgSize, &windowSize) { window.set(kAXSizeAttribute, sizeValue) }
+            if let sizeValue = AXValueCreate(.cgSize, &size) { window.set(kAXSizeAttribute, sizeValue) }
+        }
+    }
+
+    /// Frames for the four slots (G1 left, G1 right, G2 left, G2 right) in a 2×2 grid filling `widthFraction`
+    /// of the screen's usable width on `side`, in Accessibility coordinates (top-left origin, measured from
+    /// the top of the primary screen). `visible` is a Cocoa frame (bottom-left origin).
+    static func gridFrames(visible: CGRect, primaryHeight: CGFloat, widthFraction: CGFloat,
+                           side: Settings.ArrangeSide) -> [CGRect] {
+        let width = (visible.width * min(1, max(0.1, widthFraction))).rounded(.down)
+        let minX = side == .right ? visible.maxX - width : visible.minX
+        let top = primaryHeight - visible.maxY
+        let cell = CGSize(width: (width / 2).rounded(.down), height: (visible.height / 2).rounded(.down))
+        return (0..<4).map { slot in
+            CGRect(x: minX + CGFloat(slot % 2) * cell.width, y: top + CGFloat(slot / 2) * cell.height,
+                   width: cell.width, height: cell.height)
         }
     }
 

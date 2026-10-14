@@ -34,28 +34,48 @@ final class GeneralPreferencesViewController: NSViewController {
     private let cloneMethod = NSPopUpButton(frame: .zero, pullsDown: false)
     private let cloneDelay = NSSlider(value: 0.25, minValue: 0.05, maxValue: 1, target: nil, action: nil)
     private let cloneDelayLabel = NSTextField(labelWithString: "")
+    private let arrangeSide = NSPopUpButton(frame: .zero, pullsDown: false)
+    private let arrangeWidth = NSPopUpButton(frame: .zero, pullsDown: false)
+    private static let arrangePercents = [100, 90, 80, 75, 70, 65, 60, 50, 40, 30]
 
     override func loadView() {
-        let view = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 225))
+        let lift: CGFloat = 70 // room for the window-arrangement section at the bottom
+        let view = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 225 + lift))
         for (i, box) in [keepAlive, keepOnTop, autoUpdate, shareStats].enumerated() {
-            box.frame = NSRect(x: 40, y: 180 - i * 25, width: 340, height: 20)
+            box.frame = NSRect(x: 40, y: 180 + lift - CGFloat(i) * 25, width: 340, height: 20)
             box.target = self
             box.action = #selector(toggled(_:))
             view.addSubview(box)
         }
         let cloneLabel = NSTextField(labelWithString: "Click Repeater works by:")
-        cloneLabel.frame = NSRect(x: 40, y: 75, width: 340, height: 17)
+        cloneLabel.frame = NSRect(x: 40, y: 75 + lift, width: 340, height: 17)
         cloneMethod.addItems(withTitles: ClickRepeater.Method.allCases.map(\.title))
-        cloneMethod.frame = NSRect(x: 38, y: 44, width: 300, height: 26)
+        cloneMethod.frame = NSRect(x: 38, y: 44 + lift, width: 300, height: 26)
         cloneMethod.target = self
         cloneMethod.action = #selector(cloneMethodChanged)
         let delayTitle = NSTextField(labelWithString: "Pause per step:")
-        delayTitle.frame = NSRect(x: 40, y: 15, width: 100, height: 17)
-        cloneDelay.frame = NSRect(x: 140, y: 12, width: 170, height: 24)
+        delayTitle.frame = NSRect(x: 40, y: 15 + lift, width: 100, height: 17)
+        cloneDelay.frame = NSRect(x: 140, y: 12 + lift, width: 170, height: 24)
         cloneDelay.target = self
         cloneDelay.action = #selector(cloneDelayChanged)
-        cloneDelayLabel.frame = NSRect(x: 316, y: 15, width: 70, height: 17)
+        cloneDelayLabel.frame = NSRect(x: 316, y: 15 + lift, width: 70, height: 17)
         [cloneLabel, cloneMethod, delayTitle, cloneDelay, cloneDelayLabel].forEach(view.addSubview)
+
+        let arrangeLabel = NSTextField(labelWithString: "Arrange Game Windows (⌘G) uses:")
+        arrangeLabel.frame = NSRect(x: 40, y: 52, width: 340, height: 17)
+        let theLabel = NSTextField(labelWithString: "the")
+        theLabel.frame = NSRect(x: 40, y: 22, width: 26, height: 17)
+        arrangeWidth.addItems(withTitles: Self.arrangePercents.map { "\($0)%" })
+        arrangeWidth.frame = NSRect(x: 66, y: 17, width: 84, height: 26)
+        arrangeWidth.target = self
+        arrangeWidth.action = #selector(arrangeChanged)
+        let ofLabel = NSTextField(labelWithString: "of the screen on the")
+        ofLabel.frame = NSRect(x: 154, y: 22, width: 130, height: 17)
+        arrangeSide.addItems(withTitles: ["right", "left"])
+        arrangeSide.frame = NSRect(x: 284, y: 17, width: 84, height: 26)
+        arrangeSide.target = self
+        arrangeSide.action = #selector(arrangeChanged)
+        [arrangeLabel, theLabel, arrangeWidth, ofLabel, arrangeSide].forEach(view.addSubview)
         self.view = view
         preferredContentSize = view.frame.size
     }
@@ -71,6 +91,18 @@ final class GeneralPreferencesViewController: NSViewController {
         cloneMethod.selectItem(at: ClickRepeater.Method.allCases.firstIndex(of: Settings.repeaterMethod) ?? 0)
         cloneDelay.doubleValue = Settings.repeaterDelay
         cloneDelayChanged()
+        let percent = Int((Settings.arrangeWidthFraction * 100).rounded())
+        let nearest = Self.arrangePercents.min { abs($0 - percent) < abs($1 - percent) } ?? 100
+        arrangeWidth.selectItem(at: Self.arrangePercents.firstIndex(of: nearest) ?? 0)
+        arrangeSide.selectItem(at: Settings.arrangeSide == .right ? 0 : 1)
+        arrangeSide.isEnabled = nearest < 100
+    }
+
+    @objc private func arrangeChanged() {
+        let percent = Self.arrangePercents[max(0, arrangeWidth.indexOfSelectedItem)]
+        Settings.arrangeWidthFraction = CGFloat(percent) / 100
+        Settings.arrangeSide = arrangeSide.indexOfSelectedItem == 1 ? .left : .right
+        arrangeSide.isEnabled = percent < 100
     }
 
     @objc private func cloneDelayChanged() {

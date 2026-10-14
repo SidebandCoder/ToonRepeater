@@ -4,8 +4,8 @@
 #   ./build.sh --release  also create build/ToonRepeater.app.zip to attach to a GitHub release
 set -eu
 
-VERSION="${VERSION:-1.1}"
-BUILD_NUMBER="${BUILD_NUMBER:-2}"
+VERSION="${VERSION:-1.2}"
+BUILD_NUMBER="${BUILD_NUMBER:-3}"
 BUNDLE_ID="io.github.sidebandcoder.ToonRepeater"
 # GitHub "owner/repo" whose releases the in-app updater uses; leave empty to disable updates.
 UPDATE_REPOSITORY="SidebandCoder/ToonRepeater"

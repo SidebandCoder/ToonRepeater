@@ -88,7 +88,8 @@ choose **Controller › Quickstart 4 Toons**. It logs in four of the launcher's 
 3. For each slot it reopens the launcher, picks the account (opens the list, arrows down to it and clicks it,
    as you would), presses GO, waits for the game window, links it to the slot, then quits the launcher.
 4. Finally the four windows are arranged in a 2×2 grid. **Controller › Arrange Game Windows** (⌘G)
-   re-arranges them at any time.
+   re-arranges them at any time. To leave room for other windows, set **Preferences › General › Arrange
+   Game Windows uses** to part of the screen, for example the right 70%.
 
 Don't use the mouse or keyboard while it runs, because it clicks inside the launcher. Cancel stops it after
 the current step. Passwords never leave the launcher: ToonRepeater only stores the usernames you picked.
