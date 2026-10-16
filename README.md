@@ -8,6 +8,21 @@ dependencies, and builds with SwiftPM.
 ToonRepeater is an independent project. It isn't affiliated with or endorsed by Toontown Rewritten or Disney.
 Check Toontown Rewritten's current rules on third-party tools before you use it.
 
+## Download
+
+**[⬇️ Download ToonRepeater (.dmg)](https://github.com/SidebandCoder/ToonRepeater/releases/latest/download/ToonRepeater.dmg)**,
+no building needed. Or get the [.zip](https://github.com/SidebandCoder/ToonRepeater/releases/latest/download/ToonRepeater.app.zip),
+or browse [all releases](https://github.com/SidebandCoder/ToonRepeater/releases).
+
+1. Open the .dmg and drag **ToonRepeater** onto **Applications**.
+2. **First launch:** the app isn't notarized by Apple, so macOS blocks it at first. Right-click ToonRepeater
+   in Applications, choose **Open**, then **Open** again (on newer macOS: System Settings › Privacy &
+   Security › **Open Anyway**).
+3. Allow ToonRepeater under System Settings › Privacy & Security › **Accessibility**, then reopen it.
+
+ToonRepeater keeps itself up to date from then on. Requires macOS 11 or later; runs natively on Apple Silicon
+and Intel.
+
 ## Build & run
 
 ```sh
@@ -128,10 +143,12 @@ move it to Applications first so it can update itself.
 
 ## Releasing
 
-1. Bump `VERSION` (and `BUILD_NUMBER`) in `build.sh`, then run `./build.sh --release`. Sign releases with the
+1. Bump `VERSION` (and `BUILD_NUMBER`) in `build.sh`, then run `./build.sh --release`, which makes both
+   `ToonRepeater.app.zip` and `ToonRepeater.dmg`. Sign releases with the
    same certificate every time, or existing installs will refuse the update.
 2. On GitHub, create a release with a tag matching the version (e.g. `v1.1`), write the release notes (shown
-   in the update prompt), and attach `build/ToonRepeater.app.zip`. Don't mark it as a pre-release; drafts and
+   in the update prompt), and attach **both** `build/ToonRepeater.app.zip` (the updater uses it) and
+   `build/ToonRepeater.dmg` (the README's download link points to it). Don't mark it as a pre-release; drafts and
    pre-releases are ignored by the updater.
 
 ## License

@@ -1,7 +1,8 @@
 #!/bin/sh
 # Builds build/ToonRepeater.app (universal: Apple Silicon + Intel).
 #   ./build.sh            build the app
-#   ./build.sh --release  also create build/ToonRepeater.app.zip to attach to a GitHub release
+#   ./build.sh --release  also create build/ToonRepeater.app.zip (used by the in-app updater) and
+#                         build/ToonRepeater.dmg (drag-to-Applications installer) to attach to a GitHub release
 set -eu
 
 VERSION="${VERSION:-1.2}"
@@ -19,7 +20,7 @@ cd "$(dirname "$0")"
 swift build -c release --arch arm64 --arch x86_64
 
 APP="build/ToonRepeater.app"
-rm -rf "$APP" "build/ToonRepeater.app.zip"
+rm -rf "$APP" "build/ToonRepeater.app.zip" "build/ToonRepeater.dmg"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp ".build/apple/Products/Release/ToonRepeater" "$APP/Contents/MacOS/ToonRepeater"
 
@@ -70,5 +71,19 @@ echo "Built $APP"
 
 if [ "${1:-}" = "--release" ]; then
     ditto -c -k --keepParent "$APP" "build/ToonRepeater.app.zip"
-    echo "Created build/ToonRepeater.app.zip — attach it to a GitHub release tagged v${VERSION}."
+
+    # Disk image with the app next to an Applications shortcut, for drag-to-install.
+    STAGING="build/dmg-staging"
+    rm -rf "$STAGING"
+    mkdir -p "$STAGING"
+    ditto "$APP" "$STAGING/ToonRepeater.app"
+    ln -s /Applications "$STAGING/Applications"
+    hdiutil create -volname "ToonRepeater ${VERSION}" -srcfolder "$STAGING" -fs HFS+ -format UDZO \
+        -ov "build/ToonRepeater.dmg" >/dev/null
+    rm -rf "$STAGING"
+    if security find-certificate -c "$SIGN_IDENTITY" >/dev/null 2>&1; then
+        codesign --force --sign "$SIGN_IDENTITY" "build/ToonRepeater.dmg"
+    fi
+
+    echo "Created build/ToonRepeater.app.zip and build/ToonRepeater.dmg — attach both to a GitHub release tagged v${VERSION}."
 fi
